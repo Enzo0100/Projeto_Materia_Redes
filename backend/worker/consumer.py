@@ -22,7 +22,9 @@ def send_to_dashboard(processed_data):
             "yolo_conf": float(processed_data.get("confidence", 0.0)),
             "status": processed_data.get("final_status", "invalid"),
             "vlm_reason": processed_data.get("vlm_reason", ""),
-            "processing_time_ms": processed_data.get("processing_time_ms", 0)
+            "processing_time_ms": processed_data.get("processing_time_ms", 0),
+            "file_name": processed_data.get("file_name", ""),
+            "inference_video_url": processed_data.get("inference_video_url", "")
         }
         headers = {"X-API-Key": settings.API_KEY}
         response = requests.post(settings.DASHBOARD_URL, json=payload, headers=headers, timeout=5)
@@ -88,7 +90,9 @@ def inference_worker():
             "is_false_positive": is_false_positive,
             "final_status": final_status,
             "vlm_reason": vlm_reason,
-            "processing_time_ms": processing_time
+            "processing_time_ms": processing_time,
+            "file_name": task.get("file_name", ""),
+            "inference_video_url": res.get("inference_video_url", "")
         })
         
         try:
@@ -128,7 +132,8 @@ def callback(ch, method, properties, body):
                             'path': video, 
                             'type': f['alarm_type'], 
                             'occ_id': occ_id,
-                            'imei': f['device_imei']
+                            'imei': f['device_imei'],
+                            'file_name': f['file_name']
                         })
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except json.JSONDecodeError as e:
