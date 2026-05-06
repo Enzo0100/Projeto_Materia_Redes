@@ -95,21 +95,6 @@ def inference_worker():
             pass
 
         inference_queue.task_done()
-        except:
-            pass
-
-        end_time = time.time()
-        processing_time_ms = int((end_time - start_time) * 1000)
-
-        send_to_dashboard({
-            "occurrence_id": task['occ_id'],
-            "alarm_type": task['type'],
-            "confidence": res.get('confidence'),
-            "is_false_positive": is_false_positive,
-            "vlm_reason": vlm_reason,
-            "processing_time_ms": processing_time_ms
-        })
-        inference_queue.task_done()
 
 threading.Thread(target=inference_worker, daemon=True).start()
 

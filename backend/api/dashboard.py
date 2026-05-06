@@ -69,16 +69,19 @@ async def index(request: Request, username: str = Depends(get_current_user)):
         total_time = sum(r.get("processing_time_ms", 0) for r in results_db)
         avg_time = round(total_time / total_processed, 2)
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "results": list(reversed(results_db[-50:])),
-        "stats": {
-            "total": total_processed,
-            "valid": valid_alerts,
-            "invalid": invalid_alerts,
-            "avg_time_ms": avg_time
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "results": list(reversed(results_db[-50:])),
+            "stats": {
+                "total": total_processed,
+                "valid": valid_alerts,
+                "invalid": invalid_alerts,
+                "avg_time_ms": avg_time
+            }
         }
-    })
+    )
 
 @app.post("/webhook/result")
 async def receive_result(data: dict, background_tasks: BackgroundTasks, api_key: str = Depends(verify_api_key)):
