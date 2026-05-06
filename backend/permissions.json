@@ -1,0 +1,10 @@
+{
+    "GLOBAL_DEFAULT": {
+        "use_yolo": true,
+        "use_vlm": false,
+        "allowed_models": [
+            "EPI",
+            "Bocejo"
+        ]
+    }
+}

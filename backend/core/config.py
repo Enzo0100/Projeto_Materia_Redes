@@ -12,6 +12,12 @@ class Config:
     DB_USER = os.getenv("DB_USER")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_NAME = os.getenv("DB_NAME", "yuv_main")
+    
+    TS_DB_HOST = os.getenv("TS_DB_HOST", "timescaledb")
+    TS_DB_PORT = int(os.getenv("TS_DB_PORT", 5432))
+    TS_DB_USER = os.getenv("TS_DB_USER", "events_user")
+    TS_DB_PASSWORD = os.getenv("TS_DB_PASSWORD", "events_password")
+    TS_DB_NAME = os.getenv("TS_DB_NAME", "events_db")
     OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava")
     

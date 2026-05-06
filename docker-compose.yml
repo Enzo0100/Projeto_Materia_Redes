@@ -21,3 +21,18 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/models:/app/models
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: events-timescaledb
+    environment:
+      POSTGRES_USER: events_user
+      POSTGRES_PASSWORD: events_password
+      POSTGRES_DB: events_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+
+volumes:
+  timescaledb_data:

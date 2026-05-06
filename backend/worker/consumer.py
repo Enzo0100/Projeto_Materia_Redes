@@ -12,6 +12,7 @@ def send_to_dashboard(processed_data):
     try:
         payload = {
             "occurrence_id": str(processed_data.get("occurrence_id")),
+            "imei": str(processed_data.get("imei", "Desconhecido")),
             "alarm_type": str(processed_data.get("alarm_type")),
             "yolo_conf": float(processed_data.get("confidence", 0.0)),
             "status": processed_data.get("final_status", "invalid"),
@@ -37,6 +38,7 @@ def inference_worker():
             print(f" [IAM] IMEI {imei} NÃO autorizado para modelo '{task['type']}'. Pulando...")
             send_to_dashboard({
                 "occurrence_id": task['occ_id'],
+                "imei": imei,
                 "alarm_type": task['type'],
                 "final_status": "skipped_iam",
                 "vlm_reason": "IMEI não autorizado para este modelo"
@@ -81,6 +83,7 @@ def inference_worker():
 
         send_to_dashboard({
             "occurrence_id": task['occ_id'],
+            "imei": imei,
             "alarm_type": task['type'],
             "confidence": res.get('confidence'),
             "is_false_positive": is_false_positive,

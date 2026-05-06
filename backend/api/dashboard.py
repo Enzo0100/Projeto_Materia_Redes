@@ -6,9 +6,17 @@ import requests
 import os
 import datetime
 import secrets
+from pydantic import BaseModel
+from typing import Dict, List, Any
 from core.config import settings
+from services.iam_service import IAMService
+from services import timescale_db
 
 app = FastAPI()
+
+@app.on_event("startup")
+def startup_event():
+    timescale_db.init_db()
 
 # IAM Config
 security_basic = HTTPBasic()
@@ -38,7 +46,6 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 templates_dir = os.path.join(base_dir, "..", "templates")
 templates = Jinja2Templates(directory=templates_dir)
 
-results_db = []
 EXTERNAL_WEBHOOK_URL = os.getenv("EXTERNAL_WEBHOOK_URL", "")
 
 def forward_to_client(data: dict):
@@ -60,35 +67,43 @@ def forward_to_client(data: dict):
 
 @app.get("/")
 async def index(request: Request, username: str = Depends(get_current_user)):
-    total_processed = len(results_db)
-    valid_alerts = sum(1 for r in results_db if r.get("status") == "valid")
-    invalid_alerts = total_processed - valid_alerts
-    
-    avg_time = 0
-    if total_processed > 0:
-        total_time = sum(r.get("processing_time_ms", 0) for r in results_db)
-        avg_time = round(total_time / total_processed, 2)
+    stats = timescale_db.get_stats()
+    recent_events = timescale_db.get_recent_events(limit=50)
 
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
-            "results": list(reversed(results_db[-50:])),
-            "stats": {
-                "total": total_processed,
-                "valid": valid_alerts,
-                "invalid": invalid_alerts,
-                "avg_time_ms": avg_time
-            }
+            "results": recent_events,
+            "stats": stats
         }
     )
+
+@app.get("/permissions")
+async def permissions_page(request: Request, username: str = Depends(get_current_user)):
+    return templates.TemplateResponse(
+        request=request,
+        name="permissions.html",
+        context={}
+    )
+
+@app.get("/api/permissions")
+async def get_permissions(username: str = Depends(get_current_user)):
+    return IAMService.get_all_permissions()
+
+@app.post("/api/permissions")
+async def save_permissions(data: Dict[str, Any], username: str = Depends(get_current_user)):
+    IAMService.save_permissions(data)
+    return {"status": "success"}
 
 @app.post("/webhook/result")
 async def receive_result(data: dict, background_tasks: BackgroundTasks, api_key: str = Depends(verify_api_key)):
     data["timestamp"] = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print(f" [API] Resultado recebido: {data['occurrence_id']}")
     
-    results_db.append(data)
+    # Log event into TimescaleDB
+    timescale_db.log_event(data)
+    
     background_tasks.add_task(forward_to_client, data)
     
     return {"status": "received"}
