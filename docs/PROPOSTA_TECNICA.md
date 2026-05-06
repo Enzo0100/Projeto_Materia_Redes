@@ -1,4 +1,4 @@
-# Proposta Técnica e Arquitetura: Kimura AI Video Intelligence
+# Proposta Técnica e Arquitetura: Events AI Video Intelligence
 
 Este documento detalha o sistema de processamento inteligente de ocorrências de vídeo desenvolvido para a escala de 20.000 veículos.
 
@@ -14,7 +14,7 @@ O sistema foi construído seguindo o padrão **Produtor-Consumidor Assíncrono**
 ---
 
 ## 2. Integração com Plataforma YUV
-O sistema Kimura AI foi projetado para ser "nativo" ao ecossistema YUV, utilizando os seguintes canais de integração:
+O sistema Events AI foi projetado para ser "nativo" ao ecossistema YUV, utilizando os seguintes canais de integração:
 - **Mensageria:** Consumo de eventos via RabbitMQ.
 - **Dados:** Integração direta com o banco de dados de ocorrências.
 - **Mídia:** Streaming de downloads via **YUV-DVR Media** (Oracle Cloud Infrastructure), utilizando autenticação por IMEI de dispositivo.

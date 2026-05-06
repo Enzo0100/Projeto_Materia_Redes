@@ -1,15 +1,15 @@
-# Proposta Comercial: Kimura AI + Plataforma YUV
+# Proposta Comercial: Events AI + Plataforma YUV
 
 **Data:** 6 de Maio de 2026  
 **Cliente:** Usuário da Plataforma YUV  
-**Solução:** Módulo Kimura AI de Validação Automática de Eventos
+**Solução:** Módulo Events AI de Validação Automática de Eventos
 
 ## 1. Introdução
-Esta proposta visa a implementação do módulo **Kimura AI** como uma camada de inteligência adicional à plataforma **YUV**. O objetivo principal é a redução drástica (estimada em +85%) de falsos positivos gerados por telemetria e câmeras embarcadas, permitindo que a equipe de monitoramento foque apenas em ocorrências reais e críticas.
+Esta proposta visa a implementação do módulo **Events AI** como uma camada de inteligência adicional à plataforma **YUV**. O objetivo principal é a redução drástica (estimada em +85%) de falsos positivos gerados por telemetria e câmeras embarcadas, permitindo que a equipe de monitoramento foque apenas em ocorrências reais e críticas.
 
 ## 2. Diferenciais da Solução via YUV
 - **Nativo:** Integração direta com o RabbitMQ e Object Storage da YUV.
-- **Transparência:** O cliente continua utilizando a interface YUV, com os alertas sendo validados "nos bastidores" pelo Kimura AI.
+- **Transparência:** O cliente continua utilizando a interface YUV, com os alertas sendo validados "nos bastidores" pelo Events AI.
 - **IA em Cascata:** Combinação de visão computacional com VLM (validação semântica contextual) para máxima precisão.
 
 ## 3. Escopo de Atendimento
@@ -52,4 +52,4 @@ O sistema processará automaticamente alarmes de:
 3. Ativação em ambiente de produção.
 
 ---
-**Kimura AI - Inteligência que salva vidas.**
+**Events AI - Inteligência que salva vidas.**

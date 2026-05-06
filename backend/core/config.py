@@ -33,5 +33,5 @@ class Config:
     # IAM Settings
     DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME", "admin")
     DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "admin123")
-    API_KEY = os.getenv("API_KEY", "super-secret-kimura-key")
+    API_KEY = os.getenv("API_KEY", "super-secret-key")
 settings = Config()
