@@ -6,3 +6,4 @@ mysql-connector-python
 pika
 requests
 python-dotenv
+pytest

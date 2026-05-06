@@ -13,6 +13,8 @@ def get_alarm_files(occurrence_id, retries=3, delay=5):
             cursor.close()
             conn.close()
             if results: return results
+        except Exception as e:
+            print(f" [DB ERROR] Falha ao consultar arquivos da ocorrência {occurrence_id} (tentativa {attempt+1}/{retries}): {e}")
             time.sleep(delay)
-        except Exception: pass
+    print(f" [DB ERROR] Todas as tentativas falharam para ocorrência {occurrence_id}.")
     return []

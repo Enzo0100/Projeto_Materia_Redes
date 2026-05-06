@@ -16,9 +16,10 @@ def send_to_dashboard(processed_data):
             "status": "valid" if not processed_data.get("is_false_positive") else "invalid",
             "vlm_reason": processed_data.get("vlm_reason", "")
         }
-        requests.post(settings.DASHBOARD_URL, json=payload, timeout=2)
-    except:
-        pass
+        response = requests.post(settings.DASHBOARD_URL, json=payload, timeout=5)
+        response.raise_for_status()
+    except Exception as e:
+        print(f" [WORKER ERROR] Falha ao enviar resultado para o dashboard: {e}")
 
 def inference_worker():
     while True:
@@ -64,14 +65,14 @@ def download_video(imei, file_name, occ_id):
     dest = os.path.join(settings.DOWNLOAD_PATH, str(occ_id))
     os.makedirs(dest, exist_ok=True)
     try:
-        r = requests.get(url, timeout=10)
-        if r.status_code == 200:
-            path = os.path.join(dest, file_name)
-            with open(path, 'wb') as f: f.write(r.content)
-            return path
-    except:
-        pass
-    return None
+        r = requests.get(url, timeout=15)
+        r.raise_for_status()
+        path = os.path.join(dest, file_name)
+        with open(path, 'wb') as f: f.write(r.content)
+        return path
+    except Exception as e:
+        print(f" [WORKER ERROR] Falha no download do vídeo {file_name}: {e}")
+        return None
 
 def callback(ch, method, properties, body):
     try:
@@ -85,8 +86,12 @@ def callback(ch, method, properties, body):
                     if video:
                         inference_queue.put({'path': video, 'type': f['alarm_type'], 'occ_id': occ_id})
         ch.basic_ack(delivery_tag=method.delivery_tag)
-    except:
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except json.JSONDecodeError as e:
+        print(f" [RABBITMQ ERROR] Payload JSON inválido na mensagem: {e}")
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+    except Exception as e:
+        print(f" [RABBITMQ ERROR] Erro inesperado no callback: {e}")
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 def run():
     print(" [*] Worker Kimu-Ra (Segmented) iniciado...")
