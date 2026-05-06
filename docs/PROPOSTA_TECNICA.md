@@ -6,13 +6,22 @@ Este documento detalha o sistema de processamento inteligente de ocorrências de
 O sistema foi construído seguindo o padrão **Produtor-Consumidor Assíncrono**, garantindo que a ingestão de dados (RabbitMQ) nunca seja bloqueada pelo processamento pesado de IA (GPU).
 
 ### Componentes Chave:
-- **Orquestrador Central (`app.py`):** Gerencia a fila de mensagens, busca metadados no MySQL e coordena o fluxo de download.
-- **Módulo de Inteligência (`intelligence.py`):** Decide dinamicamente a amostragem de frames e gera prompts de POI (Point of Interest).
-- **Motor de Inferência (`inference_engine.py`):** Executa modelos YOLO e VLM em cascata com gerenciamento de vRAM.
+- **Orquestrador de Fila (`consumer.py`):** Consome mensagens do RabbitMQ de forma assíncrona, orquestra o download de vídeos diretamente do Object Storage YUV (Oracle Cloud) e gerencia a fila de inferência local.
+- **Módulo de Inteligência de Amostragem (`intelligence.py`):** Decide dinamicamente a taxa de amostragem de frames e a estratégia de corte (Início, Meio ou Full) baseada no tipo de alarme, reduzindo drásticamente a carga computacional.
+- **Motor de Inferência YOLO (`yolo_service.py`):** Executa modelos YOLOv8 otimizados com gerenciamento de memória via streaming e detecção específica para fadiga, uso de celular e EPI.
+- **Dashboard Integrado (`dashboard.py`):** Fornece uma API REST para visualização em tempo real dos resultados processados e métricas de acurácia.
 
 ---
 
-## 2. Fluxo de Validação em Cascata
+## 2. Integração com Plataforma YUV
+O sistema Kimura AI foi projetado para ser "nativo" ao ecossistema YUV, utilizando os seguintes canais de integração:
+- **Mensageria:** Consumo de eventos via RabbitMQ.
+- **Dados:** Integração direta com o banco de dados de ocorrências.
+- **Mídia:** Streaming de downloads via **YUV-DVR Media** (Oracle Cloud Infrastructure), utilizando autenticação por IMEI de dispositivo.
+
+---
+
+## 3. Fluxo de Validação em Cascata
 Para garantir alta acurácia com baixo custo operacional, implementamos uma validação em dois estágios:
 
 1.  **Estágio 1: YOLO (Filtro Rápido)**

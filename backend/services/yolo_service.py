@@ -1,15 +1,26 @@
 from ultralytics import YOLO
 from core.config import settings
+import os
+
 class YOLOProcessor:
-    _model = None
+    _models = {}
+
     @classmethod
-    def get_model(cls):
-        if cls._model is None:
-            cls._model = YOLO(settings.MODEL_PATH)
-        return cls._model
+    def get_model(cls, alarm_type):
+        # Resolve o caminho do modelo baseado no tipo de alarme
+        model_path = settings.MODELS.get(alarm_type, settings.DEFAULT_MODEL)
+        
+        # Garante o path absoluto dentro do container/backend
+        full_path = os.path.join(os.getcwd(), model_path)
+
+        if model_path not in cls._models:
+            print(f" [YOLO] Carregando modelo para '{alarm_type}': {model_path}")
+            cls._models[model_path] = YOLO(full_path)
+        return cls._models[model_path]
+
     @staticmethod
     def run_inference(video_path, alarm_type):
-        model = YOLOProcessor.get_model()
+        model = YOLOProcessor.get_model(alarm_type)
         try:
             # stream=True evita acúmulo de memória RAM em workers de longa duração
             results = model.predict(source=video_path, save=False, conf=0.25, verbose=False, stream=True)

@@ -12,7 +12,18 @@ class Config:
     DB_USER = os.getenv("DB_USER")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_NAME = os.getenv("DB_NAME", "yuv_main")
-    MODEL_PATH = "models/epi.pt"
+    
+    MODELS = {
+        "Bocejo": "models/bocejo.pt",
+        "Distração": "models/distração.pt",
+        "Uso de Celular": "models/celular.pt",
+        "Fumar": "models/fumar.pt",
+        "EPI": "models/epi.pt",
+        "Capacete": "models/capacete.pt",
+        "Acompanhante": "models/acompanhante.pt"
+    }
+    DEFAULT_MODEL = "models/epi.pt"
+    
     DOWNLOAD_PATH = "downloads"
     SELECTED_ALARM_TYPES = ["Bocejo", "Distração", "Uso de Celular", "Fumar", "EPI", "Capacete", "Acompanhante"]
     DASHBOARD_URL = "http://dashboard:8000/webhook/result"
