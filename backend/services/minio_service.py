@@ -59,7 +59,12 @@ class MinioService:
             # Since it's public, the URL will be just the host/bucket/file
             # In a local environment, we return localhost for the frontend to access
             public_host = os.getenv("MINIO_PUBLIC_HOST", "localhost:9000")
-            return f"http://{public_host}/{cls.bucket_name}/{file_name}"
+            # If public_host doesn't contain a protocol, prepend http://
+            if not public_host.startswith(("http://", "https://")):
+                url = f"http://{public_host}/{cls.bucket_name}/{file_name}"
+            else:
+                url = f"{public_host}/{cls.bucket_name}/{file_name}"
+            return url
         except Exception as e:
             print(f" [MINIO] Erro ao fazer upload do arquivo {file_path}: {e}")
             return None

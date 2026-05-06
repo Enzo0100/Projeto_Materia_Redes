@@ -43,13 +43,15 @@ def init_db():
                 status VARCHAR(50),
                 vlm_reason TEXT,
                 processing_time_ms INTEGER,
-                file_name VARCHAR(255)
+                file_name VARCHAR(255),
+                inference_video_url TEXT
             );
         """)
         
         # In case the table already exists, try to add the column
         try:
             cursor.execute("ALTER TABLE events_log ADD COLUMN IF NOT EXISTS file_name VARCHAR(255);")
+            cursor.execute("ALTER TABLE events_log ADD COLUMN IF NOT EXISTS inference_video_url TEXT;")
         except Exception:
             conn.rollback() # Rollback in case of error so we can proceed
             pass
@@ -91,8 +93,8 @@ def log_event(data):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO events_log (time, occurrence_id, imei, alarm_type, yolo_conf, status, vlm_reason, processing_time_ms, file_name)
-            VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO events_log (time, occurrence_id, imei, alarm_type, yolo_conf, status, vlm_reason, processing_time_ms, file_name, inference_video_url)
+            VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             data.get("occurrence_id"),
             data.get("imei", "Desconhecido"),
@@ -101,7 +103,8 @@ def log_event(data):
             data.get("status"),
             data.get("vlm_reason", ""),
             data.get("processing_time_ms", 0),
-            data.get("file_name", "")
+            data.get("file_name", ""),
+            data.get("inference_video_url", "")
         ))
         conn.commit()
         cursor.close()
@@ -117,7 +120,7 @@ def get_recent_events(limit=50):
     try:
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
-            SELECT time as timestamp, occurrence_id, imei, alarm_type, yolo_conf, status, vlm_reason, processing_time_ms, file_name
+            SELECT time as timestamp, occurrence_id, imei, alarm_type, yolo_conf, status, vlm_reason, processing_time_ms, file_name, inference_video_url
             FROM events_log
             ORDER BY time DESC
             LIMIT %s

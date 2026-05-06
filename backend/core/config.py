@@ -43,9 +43,11 @@ class Config:
         "Aceleração Brusca": "models/aceleracao.pt",
         "Curva Brusca": "models/curva.pt",
         "Detector de Pedestre": "models/pedestre.pt",
-        "Detector de Ciclista": "models/ciclista.pt"
+        "Detector de Ciclista": "models/ciclista.pt",
+        "Colisão": "models/colisao.pt",
+        "Risco de Colisão": "models/risco_colisao.pt"
     }
-    DEFAULT_MODEL = "models/fadiga.pt"
+    DEFAULT_MODEL = "models/epi.pt"
     
     DOWNLOAD_PATH = "downloads"
     SELECTED_ALARM_TYPES = [

@@ -177,9 +177,22 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {selectedEvent.inference_video_url && (
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'left' }}>Vídeo Processado (IA)</p>
+                <video 
+                  controls 
+                  src={selectedEvent.inference_video_url} 
+                  style={{ width: '100%', maxHeight: '300px', borderRadius: '0.25rem', backgroundColor: '#000' }}
+                >
+                  Seu navegador não suporta a tag de vídeo.
+                </video>
+              </div>
+            )}
+
             {selectedEvent.file_name && (
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'left' }}>Vídeo da Ocorrência</p>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'left' }}>Vídeo Original</p>
                 <video 
                   controls 
                   src={`https://grxwzzpo0ewx.compat.objectstorage.sa-saopaulo-1.oraclecloud.com/yuv-dvr-media/${selectedEvent.imei}/${selectedEvent.file_name}`} 
