@@ -1,0 +1,88 @@
+import pika, os, json, requests, time, queue, threading
+from core.config import settings
+from services.yolo_service import YOLOProcessor
+from services.database import get_alarm_files
+
+inference_queue = queue.Queue(maxsize=100)
+
+def send_to_dashboard(processed_data):
+    try:
+        payload = {
+            "occurrence_id": str(processed_data.get("occurrence_id")),
+            "alarm_type": str(processed_data.get("alarm_type")),
+            "yolo_conf": float(processed_data.get("confidence", 0.0)),
+            "status": "valid" if not processed_data.get("is_false_positive") else "invalid"
+        }
+        requests.post(settings.DASHBOARD_URL, json=payload, timeout=2)
+    except:
+        pass
+
+def inference_worker():
+    while True:
+        task = inference_queue.get()
+        print(f" [WORKER] Processando Occ {task['occ_id']}...")
+        res = YOLOProcessor.run_inference(task['path'], task['type'])
+        send_to_dashboard({
+            "occurrence_id": task['occ_id'],
+            "alarm_type": task['type'],
+            "confidence": res.get('confidence'),
+            "is_false_positive": res.get('is_false_positive')
+        })
+        inference_queue.task_done()
+
+threading.Thread(target=inference_worker, daemon=True).start()
+
+def download_video(imei, file_name, occ_id):
+    url = f"https://grxwzzpo0ewx.compat.objectstorage.sa-saopaulo-1.oraclecloud.com/yuv-dvr-media/{imei}/{file_name}"
+    dest = os.path.join(settings.DOWNLOAD_PATH, str(occ_id))
+    os.makedirs(dest, exist_ok=True)
+    try:
+        r = requests.get(url, timeout=10)
+        if r.status_code == 200:
+            path = os.path.join(dest, file_name)
+            with open(path, 'wb') as f: f.write(r.content)
+            return path
+    except:
+        pass
+    return None
+
+def callback(ch, method, properties, body):
+    try:
+        data = json.loads(body)
+        occ_id = data.get('id')
+        if occ_id:
+            files = get_alarm_files(occ_id)
+            for f in files:
+                if any(s.lower() in f['alarm_type'].lower() for s in settings.SELECTED_ALARM_TYPES):
+                    video = download_video(f['device_imei'], f['file_name'], occ_id)
+                    if video:
+                        inference_queue.put({'path': video, 'type': f['alarm_type'], 'occ_id': occ_id})
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except:
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
+def run():
+    print(" [*] Worker Kimu-Ra (Segmented) iniciado...")
+    while True:
+        try:
+            cred = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
+            params = pika.ConnectionParameters(
+                host=settings.RABBITMQ_HOST, 
+                port=settings.RABBITMQ_PORT, 
+                virtual_host='/', 
+                credentials=cred,
+                heartbeat=60
+            )
+            conn = pika.BlockingConnection(params)
+            chan = conn.channel()
+            chan.queue_declare(queue=settings.RABBITMQ_QUEUE_NAME, durable=True)
+            chan.basic_qos(prefetch_count=1)
+            chan.basic_consume(queue=settings.RABBITMQ_QUEUE_NAME, on_message_callback=callback)
+            print(" [OK] Conectado ao RabbitMQ.")
+            chan.start_consuming()
+        except Exception as e:
+            print(f" [!] Erro de conexão: {e}. Reconectando...")
+            time.sleep(5)
+
+if __name__ == "__main__":
+    run()

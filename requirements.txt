@@ -1,8 +1,0 @@
-ultralytics
-fastapi
-uvicorn
-python-multipart
-mysql-connector-python
-pika
-requests
-python-dotenv
