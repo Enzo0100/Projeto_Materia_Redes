@@ -65,7 +65,7 @@ def init_db():
         # Insert GLOBAL_DEFAULT if it doesn't exist
         cursor.execute("""
             INSERT INTO imei_permissions (imei, use_yolo, use_vlm, allowed_models)
-            VALUES ('GLOBAL_DEFAULT', true, false, '["EPI", "Bocejo"]'::jsonb)
+            VALUES ('GLOBAL_DEFAULT', true, false, '["Fadiga", "Bocejo", "Uso de Celular", "Distração", "Cinto de Segurança", "Olhos Fechados", "Blur Face", "Blur Placa", "Frenagem Brusca"]'::jsonb)
             ON CONFLICT (imei) DO NOTHING;
         """)
 

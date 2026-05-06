@@ -4,12 +4,14 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     container_name: events-dashboard
-    command: uvicorn api.dashboard:app --host 0.0.0.0 --port 8000
+    command: uvicorn api.dashboard:app --host 0.0.0.0 --port 8000 --reload
     env_file: .env
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
 
   worker:
     build:
@@ -21,6 +23,31 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/models:/app/models
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: events-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - dashboard
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: events-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
 
   timescaledb:
     image: timescale/timescaledb:latest-pg15

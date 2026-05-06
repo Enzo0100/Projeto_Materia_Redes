@@ -6,6 +6,7 @@ const API_URL = 'http://localhost:8000'; // Assuming backend is on port 8000
 export default function Dashboard() {
   const [data, setData] = useState({ stats: null, recent_events: [] });
   const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const fetchDashboard = async () => {
     try {
@@ -93,12 +94,13 @@ export default function Dashboard() {
               <th>Confiança YOLO</th>
               <th>Decisão VLM</th>
               <th>Status Final</th>
+              <th style={{ textAlign: 'right' }}>Ações</th>
             </tr>
           </thead>
           <tbody>
             {recent_events?.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
                   Nenhum evento processado ainda. Aguardando mensagens do RabbitMQ...
                 </td>
               </tr>
@@ -108,7 +110,7 @@ export default function Dashboard() {
                   <td style={{ color: 'var(--text-secondary)' }}>{item.timestamp}</td>
                   <td style={{ fontWeight: 600 }}>#{item.occurrence_id}</td>
                   <td>{item.imei || 'Desconhecido'}</td>
-                  <td>{item.alarm_type}</td>
+                  <td><span className="tag tag-neutral">{item.alarm_type}</span></td>
                   <td style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
                     {(item.yolo_conf * 100).toFixed(1)}%
                   </td>
@@ -122,12 +124,86 @@ export default function Dashboard() {
                       <span className="tag tag-success">FALSO POSITIVO</span>
                     )}
                   </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button onClick={() => setSelectedEvent(item)} className="btn btn-ghost" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}>
+                      Ver Trace
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Trace Modal */}
+      {selectedEvent && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 50
+        }} className="glass-modal">
+          <div className="glass" style={{ width: '100%', maxWidth: '600px', padding: '2rem', animation: 'scaleIn 0.2s ease-out' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: 'white' }}>
+                  Trace do Evento #{selectedEvent.occurrence_id}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.875rem', marginTop: '0.25rem' }}>IMEI: {selectedEvent.imei}</p>
+              </div>
+              <button onClick={() => setSelectedEvent(null)} className="btn btn-ghost" style={{ padding: '0.5rem' }}>
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Modelo Usado (YOLO)</p>
+                <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: 'white' }}>{selectedEvent.alarm_type}</p>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Confiança YOLO</p>
+                <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: 'var(--primary-color)' }}>{(selectedEvent.yolo_conf * 100).toFixed(1)}%</p>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Status da Validação</p>
+                <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: selectedEvent.status === 'valid' ? 'var(--danger-color)' : 'var(--success-color)' }}>
+                  {selectedEvent.status === 'valid' ? 'VÁLIDO (Real)' : 'FALSO POSITIVO'}
+                </p>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Tempo de Proc.</p>
+                <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#a78bfa' }}>{selectedEvent.processing_time_ms} ms</p>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+              <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Conclusão do VLM (Justificativa)</p>
+              <div style={{ 
+                color: 'var(--text-primary)', 
+                fontSize: '0.95rem', 
+                lineHeight: '1.5',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                paddingRight: '0.5rem'
+              }}>
+                {selectedEvent.vlm_reason || "Nenhuma justificativa textual fornecida pelo VLM ou validação via VLM desativada."}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setSelectedEvent(null)} className="btn btn-primary">Fechar Trace</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes scaleIn {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+      `}} />
     </div>
   );
 }

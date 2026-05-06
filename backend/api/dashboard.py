@@ -12,8 +12,18 @@ from typing import Dict, List, Any
 from core.config import settings
 from services.iam_service import IAMService
 from services import timescale_db
+from core.tracing import setup_tracing
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
+
+setup_tracing("events-dashboard")
 
 app = FastAPI()
+
+FastAPIInstrumentor.instrument_app(app)
+RequestsInstrumentor().instrument()
+Psycopg2Instrumentor().instrument()
 
 app.add_middleware(
     CORSMiddleware,

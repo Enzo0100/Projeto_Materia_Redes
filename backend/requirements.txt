@@ -9,3 +9,11 @@ python-dotenv
 pytest
 jinja2
 psycopg2-binary
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
+opentelemetry-semantic-conventions
+opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-pika
+opentelemetry-instrumentation-psycopg2

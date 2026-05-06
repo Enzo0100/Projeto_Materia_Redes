@@ -28,12 +28,33 @@ class Config:
         "Fumar": "models/fumar.pt",
         "EPI": "models/epi.pt",
         "Capacete": "models/capacete.pt",
-        "Acompanhante": "models/acompanhante.pt"
+        "Acompanhante": "models/acompanhante.pt",
+        "Cinto de Segurança": "models/cinto.pt",
+        "Fadiga": "models/fadiga.pt",
+        "Olhos Fechados": "models/olhos_fechados.pt",
+        "Uso de Máscara": "models/mascara.pt",
+        "Distância Segura": "models/distancia_segura.pt",
+        "Mudança de Faixa": "models/mudanca_faixa.pt",
+        "Obstrução de Câmera": "models/obstrucao.pt",
+        "Blur Face": "models/blur_face.pt",
+        "Blur Placa": "models/blur_placa.pt",
+        "Excesso de Velocidade": "models/velocidade.pt",
+        "Frenagem Brusca": "models/frenagem.pt",
+        "Aceleração Brusca": "models/aceleracao.pt",
+        "Curva Brusca": "models/curva.pt",
+        "Detector de Pedestre": "models/pedestre.pt",
+        "Detector de Ciclista": "models/ciclista.pt"
     }
-    DEFAULT_MODEL = "models/epi.pt"
+    DEFAULT_MODEL = "models/fadiga.pt"
     
     DOWNLOAD_PATH = "downloads"
-    SELECTED_ALARM_TYPES = ["Bocejo", "Distração", "Uso de Celular", "Fumar", "EPI", "Capacete", "Acompanhante"]
+    SELECTED_ALARM_TYPES = [
+        "Bocejo", "Distração", "Uso de Celular", "Fumar", "EPI", "Capacete", 
+        "Acompanhante", "Cinto de Segurança", "Fadiga", "Olhos Fechados", 
+        "Uso de Máscara", "Distância Segura", "Mudança de Faixa", "Obstrução de Câmera",
+        "Blur Face", "Blur Placa", "Excesso de Velocidade", "Frenagem Brusca",
+        "Aceleração Brusca", "Curva Brusca", "Detector de Pedestre", "Detector de Ciclista"
+    ]
     DASHBOARD_URL = "http://dashboard:8000/webhook/result"
     
     # IAM Settings

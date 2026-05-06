@@ -5,6 +5,11 @@ from services.database import get_alarm_files
 from services.intelligence import FrameIntelligence
 from services.vlm_service import VLMProcessor
 from services.iam_service import IAMService
+from core.tracing import setup_tracing
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+setup_tracing("events-worker")
+RequestsInstrumentor().instrument()
 
 inference_queue = queue.Queue(maxsize=100)
 
@@ -36,13 +41,7 @@ def inference_worker():
         # 1. Verificação de IAM: O IMEI pode processar este tipo de alarme?
         if not IAMService.can_process_alarm(imei, task['type']):
             print(f" [IAM] IMEI {imei} NÃO autorizado para modelo '{task['type']}'. Pulando...")
-            send_to_dashboard({
-                "occurrence_id": task['occ_id'],
-                "imei": imei,
-                "alarm_type": task['type'],
-                "final_status": "skipped_iam",
-                "vlm_reason": "IMEI não autorizado para este modelo"
-            })
+            # Removido o envio para o dashboard quando não autorizado
             inference_queue.task_done()
             continue
 
