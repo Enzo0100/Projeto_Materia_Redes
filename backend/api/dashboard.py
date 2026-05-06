@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, BackgroundTasks, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPBasic, HTTPBasicCredentials, APIKeyHeader
 import uvicorn
@@ -13,6 +14,14 @@ from services.iam_service import IAMService
 from services import timescale_db
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup_event():
@@ -64,6 +73,15 @@ def forward_to_client(data: dict):
             requests.post(EXTERNAL_WEBHOOK_URL, json=yuv_payload, timeout=5)
         except Exception as e:
             print(f" [API ERROR] Falha ao encaminhar webhook: {e}")
+
+@app.get("/api/dashboard")
+async def api_dashboard(username: str = Depends(get_current_user)):
+    stats = timescale_db.get_stats()
+    recent_events = timescale_db.get_recent_events(limit=50)
+    return {
+        "stats": stats,
+        "recent_events": recent_events
+    }
 
 @app.get("/")
 async def index(request: Request, username: str = Depends(get_current_user)):
