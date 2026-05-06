@@ -12,6 +12,8 @@ class Config:
     DB_USER = os.getenv("DB_USER")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_NAME = os.getenv("DB_NAME", "yuv_main")
+    OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava")
     
     MODELS = {
         "Bocejo": "models/bocejo.pt",

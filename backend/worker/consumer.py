@@ -2,6 +2,8 @@ import pika, os, json, requests, time, queue, threading
 from core.config import settings
 from services.yolo_service import YOLOProcessor
 from services.database import get_alarm_files
+from services.intelligence import FrameIntelligence
+from services.vlm_service import VLMProcessor
 
 inference_queue = queue.Queue(maxsize=100)
 
@@ -11,7 +13,8 @@ def send_to_dashboard(processed_data):
             "occurrence_id": str(processed_data.get("occurrence_id")),
             "alarm_type": str(processed_data.get("alarm_type")),
             "yolo_conf": float(processed_data.get("confidence", 0.0)),
-            "status": "valid" if not processed_data.get("is_false_positive") else "invalid"
+            "status": "valid" if not processed_data.get("is_false_positive") else "invalid",
+            "vlm_reason": processed_data.get("vlm_reason", "")
         }
         requests.post(settings.DASHBOARD_URL, json=payload, timeout=2)
     except:
@@ -22,11 +25,35 @@ def inference_worker():
         task = inference_queue.get()
         print(f" [WORKER] Processando Occ {task['occ_id']}...")
         res = YOLOProcessor.run_inference(task['path'], task['type'])
+        
+        is_false_positive = res.get('is_false_positive', True)
+        vlm_reason = "Não processado pelo VLM"
+        
+        if not is_false_positive and res.get('best_frame_path'):
+            prompt = FrameIntelligence.get_vlm_prompt_by_poi(task['type'], res['result'])
+            vlm_res = VLMProcessor.analyze_frame(res['best_frame_path'], prompt)
+            
+            if not vlm_res.get('confirmed', True):
+                is_false_positive = True
+            
+            vlm_reason = vlm_res.get('reason', '')
+            
+            try:
+                os.remove(res['best_frame_path'])
+            except:
+                pass
+                
+        try:
+            os.remove(task['path'])
+        except:
+            pass
+
         send_to_dashboard({
             "occurrence_id": task['occ_id'],
             "alarm_type": task['type'],
             "confidence": res.get('confidence'),
-            "is_false_positive": res.get('is_false_positive')
+            "is_false_positive": is_false_positive,
+            "vlm_reason": vlm_reason
         })
         inference_queue.task_done()
 

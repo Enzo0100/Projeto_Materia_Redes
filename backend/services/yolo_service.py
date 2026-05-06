@@ -1,6 +1,8 @@
 from ultralytics import YOLO
 from core.config import settings
 import os
+import cv2
+import uuid
 
 class YOLOProcessor:
     _models = {}
@@ -27,14 +29,38 @@ class YOLOProcessor:
             
             detections = 0
             conf_sum = 0
+            best_conf = 0.0
+            best_frame_path = None
             
             for r in results:
-                detections += len(r.boxes)
                 if len(r.boxes) > 0:
-                    conf_sum += r.boxes.conf.mean().item()
+                    detections += len(r.boxes)
+                    mean_conf = r.boxes.conf.mean().item()
+                    conf_sum += mean_conf
+                    
+                    if mean_conf > best_conf:
+                        best_conf = mean_conf
+                        frames_dir = os.path.join(settings.DOWNLOAD_PATH, "frames")
+                        os.makedirs(frames_dir, exist_ok=True)
+                        frame_filename = f"{uuid.uuid4()}.jpg"
+                        temp_path = os.path.join(frames_dir, frame_filename)
+                        # Save the image using OpenCV
+                        cv2.imwrite(temp_path, r.orig_img)
+                        # Delete the previous best frame to save space
+                        if best_frame_path and os.path.exists(best_frame_path):
+                            try:
+                                os.remove(best_frame_path)
+                            except:
+                                pass
+                        best_frame_path = temp_path
             
             conf = conf_sum / detections if detections > 0 else 0.0
             
-            return {"result": f"DETECTADO_{detections}", "confidence": float(conf), "is_false_positive": detections == 0}
+            return {
+                "result": f"DETECTADO_{detections}", 
+                "confidence": float(conf), 
+                "is_false_positive": detections == 0,
+                "best_frame_path": best_frame_path
+            }
         except Exception as e:
             return {"result": "ERROR", "confidence": 0.0, "is_false_positive": True}
