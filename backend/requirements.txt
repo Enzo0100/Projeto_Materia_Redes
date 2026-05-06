@@ -7,3 +7,4 @@ pika
 requests
 python-dotenv
 pytest
+jinja2

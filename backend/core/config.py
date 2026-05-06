@@ -29,4 +29,9 @@ class Config:
     DOWNLOAD_PATH = "downloads"
     SELECTED_ALARM_TYPES = ["Bocejo", "Distração", "Uso de Celular", "Fumar", "EPI", "Capacete", "Acompanhante"]
     DASHBOARD_URL = "http://dashboard:8000/webhook/result"
+    
+    # IAM Settings
+    DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME", "admin")
+    DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "admin123")
+    API_KEY = os.getenv("API_KEY", "super-secret-kimura-key")
 settings = Config()

@@ -33,14 +33,25 @@ class FrameIntelligence:
         detectado pelo YOLO. Isso ajuda o VLM a não alucinar e focar no problema.
         """
         prompts = {
-            "Bocejo": f"O motorista foi detectado com sinal de fadiga ({yolo_result}). Verifique se ele está realmente bocejando ou apenas respirando fundo.",
-            "Celular": f"O motorista parece estar usando o celular. Confirme se o objeto na mão dele é um smartphone ou outro item (como um rádio ou garrafa).",
-            "EPI": f"O YOLO indicou falta de EPI ({yolo_result}). Analise minuciosamente se o motorista está usando capacete e colete refletivo.",
-            "Acompanhante": "Verifique se a pessoa no banco do passageiro é um acompanhante não autorizado ou apenas uma sombra/objeto no banco."
+            "Bocejo": f"O motorista foi detectado com sinal de fadiga ({yolo_result}). Verifique se ele está realmente bocejando, com os olhos fechados ou apenas respirando fundo. Responda apenas VALID ou INVALID.",
+            "Uso de Celular": f"O motorista parece estar usando o celular ({yolo_result}). Confirme se o objeto na mão dele é um smartphone ou outro item (como um rádio ou garrafa). Responda apenas VALID ou INVALID.",
+            "EPI": f"O YOLO indicou falta de EPI ({yolo_result}). Analise minuciosamente se o motorista está usando capacete e colete refletivo conforme as normas de segurança. Responda apenas VALID ou INVALID.",
+            "Acompanhante": "Verifique se a pessoa no banco do passageiro é um acompanhante não autorizado ou apenas uma sombra/objeto no banco. Responda apenas VALID ou INVALID."
         }
         
-        default_prompt = f"O sistema detectou um possível alerta de {alarm_type}. Analise o frame e confirme se é um falso positivo ou uma infração real."
+        default_prompt = f"O sistema detectou um possível alerta de {alarm_type}. Analise o frame e confirme se é um falso positivo ou uma infração real. Responda apenas VALID ou INVALID."
         return prompts.get(alarm_type, default_prompt)
+
+    @staticmethod
+    def run_vlm_validation(image_path, prompt):
+        """
+        Simula a chamada ao modelo VLM (Llava/Ollama ou GPT-4o).
+        Atualmente configurado para validar baseando-se no contexto visual.
+        """
+        # TODO: Implementar chamada real via Ollama API ou SDK OpenAI
+        # Por enquanto, retorna VALID para fins de fluxograma se o YOLO teve confiança alta
+        print(f" [VLM] Analisando frame {image_path} com prompt: {prompt}")
+        return "VALID"
 
     @staticmethod
     def should_process_all_videos(occurrence_id, files):
