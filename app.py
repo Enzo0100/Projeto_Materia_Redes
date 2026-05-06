@@ -11,6 +11,26 @@ from intelligence import FrameIntelligence
 
 load_dotenv()
 
+# --- WEBHOOK DO DASHBOARD ---
+DASHBOARD_URL = "http://localhost:8000/webhook/result"
+
+def send_to_dashboard(processed_data):
+    """Envia o resultado para o dashboard via HTTP POST"""
+    try:
+        # Mapeamento do formato interno para o formato esperado pelo Dashboard
+        payload = {
+            "occurrence_id": str(processed_data.get("occurrence_id")),
+            "imei": str(processed_data.get("imei", "N/A")),
+            "alarm_type": str(processed_data.get("alarm_type")),
+            "yolo_conf": float(processed_data.get("confidence", 0.0)),
+            "vlm_res": not processed_data.get("is_false_positive", True),
+            "status": "valid" if not processed_data.get("is_false_positive") else "invalid"
+        }
+        requests.post(DASHBOARD_URL, json=payload, timeout=2)
+    except Exception as e:
+        # Silencioso se o dashboard não estiver rodando
+        pass
+
 # --- FILA DE INFERÊNCIA ASSÍNCRONA ---
 # Esta fila garante que a GPU não seja sobrecarregada por múltiplas inferências simultâneas.
 inference_queue = queue.Queue(maxsize=100)
@@ -70,6 +90,10 @@ def inference_worker():
                 )
                 res_connection.close()
                 print(f" [->] Resultado enviado para a fila {RESULTS_QUEUE_NAME}")
+
+                # Envia também para o Dashboard Web (Simulação da Plataforma)
+                send_to_dashboard(processed_data)
+
             except Exception as e:
                 print(f" [!] Erro ao enviar resultado para RabbitMQ: {e}")
 

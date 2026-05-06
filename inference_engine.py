@@ -1,5 +1,7 @@
 import time
 import random
+import os
+from ultralytics import YOLO
 
 class InferenceEngine:
     """
@@ -12,32 +14,65 @@ class InferenceEngine:
         self._warmup()
 
     def _warmup(self):
-        print(" [ENGINE] Carregando pesos YOLO v8 na vRAM...")
-        # Simulação de tempo de carregamento de arquivo .pt
-        time.sleep(1.5) 
-        self.models['yolo_general'] = "YOLO_READY"
+        print(" [ENGINE] Carregando pesos YOLO v8 real (Ultralytics)...")
+        try:
+            # Carrega o modelo nano (leve) para teste/desenvolvimento
+            self.models['yolov8n'] = YOLO('yolov8n.pt')
+            print(" [ENGINE] YOLOv8n carregado com sucesso.")
+        except Exception as e:
+            print(f" [ENGINE] Erro ao carregar YOLOv8 real: {e}. Usando simulação.")
+            self.models['yolo_general'] = "SIMULATED_READY"
         print(" [ENGINE] Warm-up concluído.")
 
     def run_yolo(self, video_path, strategy):
         """
-        Simula a execução do YOLO seguindo a estratégia de frames
-        definida pelo FrameIntelligence.
+        Executa inferência real usando Ultralytics YOLOv8.
         """
         start_time = time.time()
         
-        # Simula o processamento de X frames
+        # Se o modelo real estiver carregado
+        if 'yolov8n' in self.models and os.path.exists(video_path):
+            try:
+                # Executa no vídeo real
+                # imgsz reduzido para velocidade, verbose=False para não poluir o terminal
+                results = self.models['yolov8n'].predict(
+                    source=video_path, 
+                    imgsz=320, 
+                    conf=0.25, 
+                    verbose=False
+                )
+                
+                # Para simplificar, pegamos a maior confiança encontrada em qualquer frame
+                max_conf = 0
+                for r in results:
+                    if len(r.boxes.conf) > 0:
+                        conf = float(r.boxes.conf.max())
+                        if conf > max_conf: max_conf = conf
+
+                execution_time = (time.time() - start_time) * 1000
+                return {
+                    "detected": max_conf > 0.4,
+                    "label": "IA_DETECTED",
+                    "confidence": round(max_conf, 2),
+                    "inference_ms": round(execution_time, 2),
+                    "frames_processed": len(results),
+                    "engine": "ultralytics_yolov8"
+                }
+            except Exception as e:
+                print(f" [ENGINE] Erro na inferência real: {e}")
+
+        # Fallback para simulação (mantendo compatibilidade se o arquivo de vídeo não existir)
         num_frames = strategy.get('max_frames', 10)
-        # 30ms por frame é um padrão razoável para YOLO v8n em GPU
-        processing_time = num_frames * 0.03 
-        time.sleep(processing_time)
-        
+        time.sleep(num_frames * 0.03) 
         execution_time = (time.time() - start_time) * 1000
         return {
             "detected": True,
             "label": "driver_distraction",
             "confidence": round(random.uniform(0.75, 0.95), 2),
             "inference_ms": round(execution_time, 2),
-            "frames_processed": num_frames
+            "frames_processed": num_frames,
+            "engine": "simulated"
+        }
         }
 
     def run_vlm(self, video_path, prompt):
