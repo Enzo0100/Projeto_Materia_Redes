@@ -21,33 +21,41 @@ class Config:
     OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava")
     
-    MODELS = {
-        "Bocejo": "models/bocejo.pt",
-        "Distração": "models/distração.pt",
-        "Uso de Celular": "models/celular.pt",
-        "Fumar": "models/fumar.pt",
-        "EPI": "models/epi.pt",
-        "Capacete": "models/capacete.pt",
-        "Acompanhante": "models/acompanhante.pt",
-        "Cinto de Segurança": "models/cinto.pt",
-        "Fadiga": "models/fadiga.pt",
-        "Olhos Fechados": "models/olhos_fechados.pt",
-        "Uso de Máscara": "models/mascara.pt",
-        "Distância Segura": "models/distancia_segura.pt",
-        "Mudança de Faixa": "models/mudanca_faixa.pt",
-        "Obstrução de Câmera": "models/obstrucao.pt",
-        "Blur Face": "models/blur_face.pt",
-        "Blur Placa": "models/blur_placa.pt",
-        "Excesso de Velocidade": "models/velocidade.pt",
-        "Frenagem Brusca": "models/frenagem.pt",
-        "Aceleração Brusca": "models/aceleracao.pt",
-        "Curva Brusca": "models/curva.pt",
-        "Detector de Pedestre": "models/pedestre.pt",
-        "Detector de Ciclista": "models/ciclista.pt",
-        "Colisão": "models/colisao.pt",
-        "Risco de Colisão": "models/risco_colisao.pt"
+    # Modelos YOLO unificados por câmera
+    YOLO_MODELS = {
+        "cabin": os.getenv("YOLO_MODEL_CABIN", "models/cabin.pt"),
+        "front": os.getenv("YOLO_MODEL_FRONT", "models/front.pt")
     }
-    DEFAULT_MODEL = "models/epi.pt"
+
+    # Mapeamento de tipos de alarme para qual câmera/modelo deve ser usado
+    ALARM_TO_CAMERA = {
+        "Bocejo": "cabin",
+        "Distração": "cabin",
+        "Uso de Celular": "cabin",
+        "Fumar": "cabin",
+        "EPI": "front",
+        "Capacete": "front",
+        "Acompanhante": "cabin",
+        "Cinto de Segurança": "cabin",
+        "Fadiga": "cabin",
+        "Olhos Fechados": "cabin",
+        "Uso de Máscara": "cabin",
+        "Distância Segura": "front",
+        "Mudança de Faixa": "front",
+        "Obstrução de Câmera": "cabin", # Pode ser ambas, mas geralmente interna
+        "Blur Face": "cabin",
+        "Blur Placa": "front",
+        "Excesso de Velocidade": "front",
+        "Frenagem Brusca": "front",
+        "Aceleração Brusca": "front",
+        "Curva Brusca": "front",
+        "Detector de Pedestre": "front",
+        "Detector de Ciclista": "front",
+        "Colisão": "front",
+        "Risco de Colisão": "front"
+    }
+
+    DEFAULT_MODEL = "models/front.pt"
     
     DOWNLOAD_PATH = "downloads"
     SELECTED_ALARM_TYPES = [

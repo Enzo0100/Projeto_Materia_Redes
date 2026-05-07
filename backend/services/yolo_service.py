@@ -10,14 +10,24 @@ class YOLOProcessor:
 
     @classmethod
     def get_model(cls, alarm_type):
-        # Resolve o caminho do modelo baseado no tipo de alarme
-        model_path = settings.MODELS.get(alarm_type, settings.DEFAULT_MODEL)
+        # Identifica qual câmera (cabin ou front) deve tratar este alarme
+        camera_type = settings.ALARM_TO_CAMERA.get(alarm_type)
+        
+        if not camera_type:
+            print(f" [YOLO] Tipo de alarme '{alarm_type}' desconhecido. Ignorando inferência.")
+            return None
+
+        model_path = settings.YOLO_MODELS.get(camera_type)
+        
+        if not model_path:
+            print(f" [YOLO] Nenhum modelo disponível para a câmera '{camera_type}'.")
+            return None
         
         # Garante o path absoluto dentro do container/backend
         full_path = os.path.join(os.getcwd(), model_path)
 
         if model_path not in cls._models:
-            print(f" [YOLO] Carregando modelo para '{alarm_type}': {model_path}")
+            print(f" [YOLO] Carregando modelo unificado '{camera_type}': {model_path}")
             if not os.path.exists(full_path):
                 print(f" [YOLO] ERRO: Arquivo do modelo não encontrado: {full_path}")
                 # Fallback para o modelo padrão se o solicitado não existir
@@ -25,6 +35,7 @@ class YOLOProcessor:
                 if os.path.exists(default_path):
                     print(f" [YOLO] Usando modelo padrão: {settings.DEFAULT_MODEL}")
                     full_path = default_path
+                    model_path = settings.DEFAULT_MODEL
                 else:
                     print(f" [YOLO] ERRO CRÍTICO: Modelo padrão também não encontrado: {default_path}")
                     return None

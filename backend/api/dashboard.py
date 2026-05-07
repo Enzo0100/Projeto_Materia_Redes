@@ -87,10 +87,17 @@ def forward_to_client(data: dict):
 @app.get("/api/dashboard")
 async def api_dashboard(username: str = Depends(get_current_user)):
     stats = timescale_db.get_stats()
-    recent_events = timescale_db.get_recent_events(limit=50)
+    # Pega os eventos recentes
+    recent_events = timescale_db.get_recent_events(limit=100)
+    
+    # Filtra para mostrar apenas eventos que possuem inferência (vídeo ou imagem processada)
+    # E remove duplicatas de visualização baseadas no occurrence_id se necessário, 
+    # ou agrupa por ocorrência. O pedido é mostrar a inferência em cima de todas as imagens.
+    filtered_events = [e for e in recent_events if e.get("inference_video_url")]
+    
     return {
         "stats": stats,
-        "recent_events": recent_events
+        "recent_events": filtered_events
     }
 
 @app.get("/")

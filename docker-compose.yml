@@ -16,7 +16,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.backend
     container_name: events-worker
     command: python worker/consumer.py
     env_file: .env
@@ -28,8 +28,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: docker/Dockerfile.frontend
     container_name: events-frontend
     ports:
       - "5173:5173"

@@ -179,27 +179,24 @@ export default function Dashboard() {
 
             {selectedEvent.inference_video_url && (
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'left' }}>Vídeo Processado (IA)</p>
-                <video 
-                  controls 
-                  src={selectedEvent.inference_video_url} 
-                  style={{ width: '100%', maxHeight: '300px', borderRadius: '0.25rem', backgroundColor: '#000' }}
-                >
-                  Seu navegador não suporta a tag de vídeo.
-                </video>
-              </div>
-            )}
-
-            {selectedEvent.file_name && (
-              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'left' }}>Vídeo Original</p>
-                <video 
-                  controls 
-                  src={`https://grxwzzpo0ewx.compat.objectstorage.sa-saopaulo-1.oraclecloud.com/yuv-dvr-media/${selectedEvent.imei}/${selectedEvent.file_name}`} 
-                  style={{ width: '100%', maxHeight: '300px', borderRadius: '0.25rem', backgroundColor: '#000' }}
-                >
-                  Seu navegador não suporta a tag de vídeo.
-                </video>
+                <p style={{ margin: 0, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem', textAlign: 'left' }}>Mídia Processada (IA)</p>
+                {selectedEvent.inference_video_url.toLowerCase().split('?')[0].endsWith('.jpg') || 
+                 selectedEvent.inference_video_url.toLowerCase().split('?')[0].endsWith('.jpeg') ||
+                 selectedEvent.inference_video_url.toLowerCase().split('?')[0].endsWith('.png') ? (
+                  <img 
+                    src={selectedEvent.inference_video_url} 
+                    style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '0.25rem' }}
+                    alt="Inferência YOLO"
+                  />
+                ) : (
+                  <video 
+                    controls 
+                    src={selectedEvent.inference_video_url} 
+                    style={{ width: '100%', maxHeight: '300px', borderRadius: '0.25rem', backgroundColor: '#000' }}
+                  >
+                    Seu navegador não suporta a tag de vídeo.
+                  </video>
+                )}
               </div>
             )}
 

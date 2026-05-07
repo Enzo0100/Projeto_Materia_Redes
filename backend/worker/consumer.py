@@ -104,7 +104,7 @@ def inference_worker():
 
 threading.Thread(target=inference_worker, daemon=True).start()
 
-def download_video(imei, file_name, occ_id):
+def download_media(imei, file_name, occ_id):
     url = f"https://grxwzzpo0ewx.compat.objectstorage.sa-saopaulo-1.oraclecloud.com/yuv-dvr-media/{imei}/{file_name}"
     dest = os.path.join(settings.DOWNLOAD_PATH, str(occ_id))
     os.makedirs(dest, exist_ok=True)
@@ -115,7 +115,7 @@ def download_video(imei, file_name, occ_id):
         with open(path, 'wb') as f: f.write(r.content)
         return path
     except Exception as e:
-        print(f" [WORKER ERROR] Falha no download do vídeo {file_name}: {e}")
+        print(f" [WORKER ERROR] Falha no download do arquivo {file_name}: {e}")
         return None
 
 def callback(ch, method, properties, body):
@@ -125,11 +125,14 @@ def callback(ch, method, properties, body):
         if occ_id:
             files = get_alarm_files(occ_id)
             for f in files:
-                if any(s.lower() in f['alarm_type'].lower() for s in settings.SELECTED_ALARM_TYPES):
-                    video = download_video(f['device_imei'], f['file_name'], occ_id)
-                    if video:
+                # Agora aceitamos vídeos e imagens JPEG
+                is_valid_media = f['file_name'].lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.jpg', '.jpeg'))
+                
+                if is_valid_media and any(s.lower() in f['alarm_type'].lower() for s in settings.SELECTED_ALARM_TYPES):
+                    media_path = download_media(f['device_imei'], f['file_name'], occ_id)
+                    if media_path:
                         inference_queue.put({
-                            'path': video, 
+                            'path': media_path, 
                             'type': f['alarm_type'], 
                             'occ_id': occ_id,
                             'imei': f['device_imei'],
